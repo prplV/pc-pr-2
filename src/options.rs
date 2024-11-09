@@ -16,9 +16,19 @@ impl CheckItNow for LibFile {
             warn!("found local lib file. truncating...");
         }
         // opening file  
-        let mut checker = File::create(name).await;
+        let checker = File::create(name).await;
         if let Err(er) = checker {
             error!("cannot work with lib file. {}", er);
+            return None;
+        }
+        Some(checker.unwrap())
+    }
+}
+impl LibFile {
+    pub async fn get_lib(name: &str) -> Option<File> {
+        let checker = File::open(name).await;
+        if let Err(er) = checker {
+            error!("cannot open lib file. {}", er);
             return None;
         }
         Some(checker.unwrap())
@@ -27,13 +37,7 @@ impl CheckItNow for LibFile {
 
 impl CheckItNow for PswdFile {
     async fn check(name: &str) -> Option<File> {
-        let mut checker = File::open(name).await;
-        // if let Err(er) = checker
-        //     .read(true)
-        //     .open(name).await {
-        //         error!("cannot work with pswd file. {}", er);
-        //         return None;
-        // }
+        let checker = File::open(name).await;
         if let Err(er) = checker {
             error!("cannot work with pswd file. {}", er);
             return None;
@@ -41,3 +45,30 @@ impl CheckItNow for PswdFile {
         Some(checker.unwrap())
     }
 }
+
+
+pub async fn chunk_array<T>(arr: &[T], num_chunks: usize) -> Vec<Vec<T>> 
+where T: Clone {
+    let chunk_size = (arr.len() / num_chunks) / 5 * 5;
+    let mut chunks: Vec<Vec<T>> = Vec::with_capacity(num_chunks);
+    let mut start = 0;
+
+    for _ in 0..num_chunks {
+        let end = (start + chunk_size).min(arr.len()); 
+        chunks.push(arr[start..end].to_vec());
+        start = end;
+    }
+    chunks
+}
+
+// pub async fn verify_threads(threads: &mut u64, len : &mut u64) {
+//     println!("{}", threads);
+//     let mut num_threads = num_cpus::get() as u64 * 1000;
+//     if threads > &mut num_threads {
+//         *threads = num_threads;
+//     }
+//     while *len % *threads != 0 {
+//         *threads-=1;
+//     }
+//     println!("{}", threads);
+// }

@@ -6,6 +6,7 @@ mod cli;
 mod logger;
 mod options;
 mod gen;
+mod bruteforce;
 
 use clap::Parser;
 use logger::init_logger;
